@@ -75,7 +75,7 @@ stripper(char *instrucao)
 }
 
 void
-uc(FILE *memoria, char r0, char r1, char r2, char r3)
+uc(FILE *memoria, char r0, char r1, char r2,    char r3)
 {
     int tam;
     char **instrucoes = memory(memoria, tam);
@@ -85,5 +85,6 @@ uc(FILE *memoria, char r0, char r1, char r2, char r3)
 void
 instruction(char **matrix)
 {
-    char **step = stripper(*matrix);  
+    char **step = stripper(*matrix);
+    
 }
