@@ -12,7 +12,7 @@
 int reg[] = {0, 0, 0};
 
 void
-load(char memory, int *ra)
+load(char *memory, int *ra)
 {
     *ra = atoi(memory);
 }
@@ -76,7 +76,6 @@ nop()
     return;
 }
 
-//armazena tudo que esta dentro da memoria para dentro de uma matrix
 char **
 memory(FILE *file, int *tam)
 {
@@ -91,7 +90,7 @@ memory(FILE *file, int *tam)
     char c = 0;
     int i = 0, j = 0;
 
-    while(feof(file))
+    while(!feof(file))
     {
         c = fgetc(file);
  
@@ -99,63 +98,66 @@ memory(FILE *file, int *tam)
         {
             i++;
             j = 0;
-            matrix = (char **)realloc(matrix,(sizeof(char*) * i++));
+            matrix = (char **)realloc(matrix,(sizeof(char*) * (i+1)));
+            matrix[i] = (char *)malloc(sizeof(char));
+            memset(matrix[i], 0, 1);
             continue;
         }
         matrix[i][j] = c;
         j++;
-        *matrix = (char *)realloc(*matrix, (sizeof(char) * j++));
+        *matrix = (char *)realloc(*matrix, (sizeof(char) * (j+1)));
     }
-
+    *tam = i;
     return matrix;
 }
 
 //separo a intrucoes em pedacos
 char **
-stripper(char *instrucao)
+stripper(char *instrucao, int *tam)
 {
     char **matrix = (char **)malloc(sizeof(char *));
     *matrix = (char *)malloc(sizeof(char));
     char c = 0;
-    int i = 0, j = 0;
+    int i = 0, j = 0, k = 0;
 
-    while(instrucao != '\0')
+    while(c != ';')
     {
-        c = *instrucao;
- 
+        c = instrucao[k];
+    
         if(c == 'R') continue;
-        
+    
         if(c == ' ')
         {
             i++;
             j = 0;
             matrix = (char **)realloc(matrix,(sizeof(char*) * i++));
+            k++;
             continue;
         }
+        k++;
         matrix[i][j] = c;
         j++;
         *matrix = (char *)realloc(*matrix, (sizeof(char) * j++));
         instrucao++;
     }
-
+    *tam = i;
+    return matrix;
 }
-
-void
-uc(FILE *memoria)
-{
-    int tam;
-    char **instrucoes = memory(memoria, &tam);
-    for(int i = 0; i < tam; i++)
-    {
-        instruction(instrucoes, i);
-    }
-}
-
 
 void
 instruction(char **matrix, int offset)
 {
-    char **step = stripper(matrix[offset]);
+    int tam;
+    char **step = stripper(matrix[offset], &tam);
+
+    printf("stripando cada instrucao\n\n");
+    for(int i = 0; i <= tam; i++)
+    {
+       printf("%s\n", step[i]); 
+    }
+
+    printf("\ntermino do striper\n\n");
+
     if(strncmp(step[0], "ADD", 3) == 0)
     {
         add(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])]);
@@ -177,7 +179,7 @@ instruction(char **matrix, int offset)
     {
         load(matrix[atoi(step[1])], &reg[atoi(step[2])]);
     }
-    if(strncmp(step[0], "ADD", 3) == 0)
+    if(strncmp(step[0], "STORE", 5) == 0)
     {
         store(matrix[atoi(step[1])], &reg[atoi(step[2])]);
     }
@@ -195,5 +197,31 @@ instruction(char **matrix, int offset)
         nop();
     }
     
-    return 0
+    return;
+}
+
+void
+uc(FILE *memoria)
+{
+    int tam;
+    char **instrucoes = memory(memoria, &tam);
+    printf("memoria.txt\n\n");    
+    for(int i = 0; i <= tam; i++)
+    {
+       printf("%s\n", instrucoes[i]); 
+    }
+
+    printf("\n\nencerramento da memoria\n\n\n");
+
+    for(int i = 0; i <= tam; i++)
+    {
+        instruction(instrucoes, i);
+    }
+}
+
+void
+start(FILE *inetern)
+{
+    uc(inetern);
+    //printf("foi ate o final?");
 }

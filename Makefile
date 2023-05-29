@@ -1,10 +1,9 @@
-OUT = ./bin/processador.out
-FILES = ./lib/lib.c ./src/main.c
-OBJ = ./lib/lib.o ./src/main.o
+OUT = bin/processador.out
+FILES =   
+OBJ = $(PWD)/lib/
 CC = gcc
 
 all:
-	$CC $OBJ -o $OUT	
-
-OBJ:
-	$CC $FILES -o $OBJ	
+	$(CC) -Wall lib/lib.c -c
+	$(CC) -Wall src/main.c lib.o -o bin/33333.out
+#	$(CC) -Wall ./bin/main.o ./bin/lib.o -o a.out	
