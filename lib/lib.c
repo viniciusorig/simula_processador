@@ -100,7 +100,6 @@ memory(FILE *file, int *tam)
             j = 0;
             matrix = (char **)realloc(matrix,(sizeof(char*) * (i+1)));
             matrix[i] = (char *)malloc(sizeof(char));
-            memset(matrix[i], 0, 1);
             continue;
         }
         matrix[i][j] = c;
@@ -183,6 +182,7 @@ instruction(char **matrix, int offset)
     {
         load(matrix[atoi(step[1])], &reg[atoi(step[2])]);
         printf("carregou para o registrador %d da memoria %d\n\n",atoi(step[1]), atoi(step[2]));
+        printf("%s\n", matrix[atoi(step[1])]);
     }
     if(strncmp(step[0], "STORE", 5) == 0)
     {
@@ -211,12 +211,11 @@ uc(FILE *memoria)
     int tam;
     char **instrucoes = memory(memoria, &tam);
     printf("memoria.txt\n\n");    
-    for(int i = 0; i <= tam; i++)
-    {
-       printf("%s\n", instrucoes[i]); 
-    }
 
-    printf("\n\nencerramento da memoria\n\n\n");
+    for(int i = 0; i < tam; i++)
+    {
+        printf("%s", instrucoes[i]);
+    }
 
     for(int i = 0; i <= tam; i++)
     {
