@@ -112,6 +112,7 @@ memory(FILE *file, int *tam)
 }
 
 //separo a intrucoes em pedacos
+
 char **
 stripper(char *instrucao, int *tam)
 {
@@ -124,21 +125,27 @@ stripper(char *instrucao, int *tam)
     {
         c = instrucao[k];
     
-        if(c == 'R') continue;
-    
+        if(c == 'R' || c == ';') 
+        {
+            k++;
+            continue;
+        }
         if(c == ' ')
         {
             i++;
             j = 0;
-            matrix = (char **)realloc(matrix,(sizeof(char*) * i++));
+            matrix = (char **)realloc(matrix,(sizeof(char*) * (i+1)));
+            matrix[i] = (char *)malloc(sizeof(char));
+            memset(matrix[i], 0, 1);
             k++;
             continue;
         }
+
         k++;
         matrix[i][j] = c;
         j++;
-        *matrix = (char *)realloc(*matrix, (sizeof(char) * j++));
-        instrucao++;
+        *matrix = (char *)realloc(*matrix, (sizeof(char) * (j+1)));
+        matrix[i][j] = 0;
     }
     *tam = i;
     return matrix;
@@ -150,13 +157,10 @@ instruction(char **matrix, int offset)
     int tam;
     char **step = stripper(matrix[offset], &tam);
 
-    printf("stripando cada instrucao\n\n");
     for(int i = 0; i <= tam; i++)
     {
        printf("%s\n", step[i]); 
     }
-
-    printf("\ntermino do striper\n\n");
 
     if(strncmp(step[0], "ADD", 3) == 0)
     {
@@ -178,6 +182,7 @@ instruction(char **matrix, int offset)
     if(strncmp(step[0], "LOAD", 4) == 0)
     {
         load(matrix[atoi(step[1])], &reg[atoi(step[2])]);
+        printf("carregou para o registrador %d da memoria %d\n\n",atoi(step[1]), atoi(step[2]));
     }
     if(strncmp(step[0], "STORE", 5) == 0)
     {
