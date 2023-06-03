@@ -66,7 +66,8 @@ and(int *ra, int rb, int rc)
 void
 halt()
 {
-    while(1);
+    fprintf(stdout, "saida\n");
+    exit(EXIT_SUCCESS);
 }
 
 //nao faz nada
@@ -92,7 +93,7 @@ memory(FILE *file, int *tam)
 
     while(!feof(file))
     {
-        c = fgetc(file);
+        c = getc(file);
  
         if(c == '\n')
         {
@@ -106,6 +107,8 @@ memory(FILE *file, int *tam)
         j++;
         *matrix = (char *)realloc(*matrix, (sizeof(char) * (j+1)));
     }
+    fclose(file);
+
     *tam = i;
     return matrix;
 }
@@ -156,11 +159,6 @@ instruction(char **matrix, int offset)
     int tam;
     char **step = stripper(matrix[offset], &tam);
 
-    for(int i = 0; i <= tam; i++)
-    {
-       printf("%s\n", step[i]); 
-    }
-
     if(strncmp(step[0], "ADD", 3) == 0)
     {
         add(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])]);
@@ -180,9 +178,7 @@ instruction(char **matrix, int offset)
 
     if(strncmp(step[0], "LOAD", 4) == 0)
     {
-        load(matrix[atoi(step[1])], &reg[atoi(step[2])]);
-        printf("carregou para o registrador %d da memoria %d\n\n",atoi(step[1]), atoi(step[2]));
-        printf("%s\n", matrix[atoi(step[1])]);
+        load(matrix[atoi(step[2])], &reg[atoi(step[1])]);
     }
     if(strncmp(step[0], "STORE", 5) == 0)
     {
@@ -195,6 +191,21 @@ instruction(char **matrix, int offset)
     
     if(strncmp(step[0], "HALT", 4) == 0)
     {
+        FILE *out_memory = fopen("./arquivos_out/memory_dump.txt", "w");
+    
+        if(!out_memory)
+        {
+            fprintf(stderr, "erro ao criar o dump de m,emoria final");
+            exit(EXIT_FAILURE);
+        }
+
+        for(int i = 0; i < tam; i++)
+        {
+            fprintf(out_memory, "%s", matrix[i]);
+            fprintf(out_memory, "\n");
+        }
+        fclose(out_memory);
+
         halt();
     }
     if(strncmp(step[0], "NOP", 3) == 0)
@@ -210,12 +221,6 @@ uc(FILE *memoria)
 {
     int tam;
     char **instrucoes = memory(memoria, &tam);
-    printf("memoria.txt\n\n");    
-
-    for(int i = 0; i < tam; i++)
-    {
-        printf("%s", instrucoes[i]);
-    }
 
     for(int i = 0; i <= tam; i++)
     {
@@ -227,5 +232,4 @@ void
 start(FILE *inetern)
 {
     uc(inetern);
-    //printf("foi ate o final?");
 }

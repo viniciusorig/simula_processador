@@ -1,10 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 //#include "../includes/lib.h"
@@ -15,6 +11,15 @@
 
 int reg[] = {0, 0, 0};
 
+struct Uc
+{
+    int res_ula;
+    int pc;
+    int ir;
+    int signal;
+};
+
+
 void
 load(char *memory, int *ra)
 {
@@ -24,15 +29,16 @@ load(char *memory, int *ra)
 void 
 store(char *memory, int *ra)
 {
-    int i  = 0, aux = atoi(memory);
-    char *ha = 0;
-    for(; aux < 1; i++)
+    int i  = 0;
+    char *ha = malloc(sizeof(char));
+    for(; *ra < 1; i++)
     {
-        aux /= 10;
+        *ra /= 10;
     }
-
-    memory = realloc(memory, sizeof(char)*i);
-    snprintf(ha, i+1, "%d", *ra);
+    i++;
+    ha = realloc(ha, sizeof(char)*(i+1));
+    memory = realloc(memory, sizeof(char)*(i+1));
+    snprintf(ha, (i+1), "%d", *ra);
     strncpy(memory, ha, i+1);
 }
 
@@ -43,34 +49,40 @@ move(int *ra, int *rb)
 }
 
 void 
-sub(int *ra, int rb, int rc)
+sub(int *ra, int rb, int rc, int *ula)
 {
     *ra = rb + rb;
+    *ula = *ra;
 }
 
 void
-add(int *ra, int rb, int rc)
+add(int *ra, int rb, int rc, int *ula)
 {
     *ra = rb+rc;
+    *ula = *ra;
+
 }
 
 void 
-or(int * ra, int rb, int rc)
+or(int * ra, int rb, int rc, int *ula )
 {
     *ra = rb | rc;
+    *ula = *ra;
 }
 
 void
-and(int *ra, int rb, int rc)
+and(int *ra, int rb, int rc, int *ula)
 {
     *ra = rb & rc;
+    *ula = *ra;
 }
 
 //system suspende
-void
+int 
 halt()
 {
-    while(1);
+    fprintf(stdout, "saida\n");
+    return -1;
 }
 
 //nao faz nada
@@ -110,6 +122,8 @@ memory(FILE *file, int *tam)
         j++;
         *matrix = (char *)realloc(*matrix, (sizeof(char) * (j+1)));
     }
+    fclose(file);
+
     *tam = i;
     return matrix;
 }
@@ -155,83 +169,106 @@ stripper(char *instrucao, int *tam)
 }
 
 void
-instruction(char **matrix, int offset)
+instruction(char **matrix, int offset, size_t total, struct Uc *uc)
 {
     int tam;
     char **step = stripper(matrix[offset], &tam);
 
-    for(int i = 0; i <= tam; i++)
-    {
-       printf("%s\n", step[i]); 
-    }
-
     if(strncmp(step[0], "ADD", 3) == 0)
     {
-        add(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])]);
+        add(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])], &uc->res_ula);
+        
+        uc->signal = 1;
     }
     if(strncmp(step[0], "SUB", 3) == 0)
     {
-        sub(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])]);
+        sub(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])], &uc->res_ula);
+        uc->signal = 1;
     }
     if(strncmp(step[0], "AND", 3) == 0)
     {
-        and(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])]);
+        and(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])], &uc->res_ula);
+        uc->signal = 1;
     }
     if(strncmp(step[0], "OR", 2) == 0)
     {
-        or(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])]);
+        or(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])], &uc->res_ula);
+        uc->signal = 1;
     }
 
     if(strncmp(step[0], "LOAD", 4) == 0)
     {
         load(matrix[atoi(step[2])], &reg[atoi(step[1])]);
-        printf("carregou para o registrador %d da memoria %d\n\n",atoi(step[1]), atoi(step[2]));
-        printf("%d\n", reg[atoi(step[1])]);
+        uc->signal = 1;
     }
-    if(strncmp(step[0], "STORE", 5) == 0)
+    if(strncmp(step[0], "STORE", 3) == 0)
     {
         store(matrix[atoi(step[1])], &reg[atoi(step[2])]);
+        uc->signal = 1;
     }
     if(strncmp(step[0], "MOVE", 4) == 0)
     {
         move(&reg[atoi(step[1])], &reg[atoi(step[2])]);
+        uc->signal = 1;
     }
     
     if(strncmp(step[0], "HALT", 4) == 0)
     {
         halt();
+        uc->signal = -1;
     }
     if(strncmp(step[0], "NOP", 3) == 0)
     {
         nop();
+        uc->signal = 1;
     }
-    
-    return;
 }
 
 void
-uc(FILE *memoria)
+finish(char **memory, struct Uc *uc, int tam)
 {
+    FILE *memory_out, *controle, *ula;
+    if(((memory_out = fopen("./arquivos_out/memory_dump.txt", "w")) == NULL ) || 
+        ((ula = fopen("./arquivos_out/ula_dump.txt", "w")) == NULL)           || 
+             ((controle = fopen("./arquivos_out/uc_dump.txt", "w")) == NULL))
+    {
+        fprintf(stderr, "nao foi possivel creiar/abrir os arquivos de saida");
+        exit(EXIT_FAILURE);
+    }
+    
+    for(int i = 0; i < (tam+1); i++)
+    {
+        fprintf(memory_out, "%s\n", memory[i]);
+    }
+    fclose(memory_out);
+
+    fprintf(controle, "pc :: %d\nir :: %d", uc->pc, uc->ir);
+    fclose(controle);
+
+    fprintf(ula, "ultimo resultado da ula :: %d", uc->res_ula);
+    fclose(ula);
+}
+
+void
+UC(FILE *memoria)
+{
+    struct Uc *uc = malloc(sizeof(struct Uc)); 
+    uc->pc = 1;
     int tam;
     char **instrucoes = memory(memoria, &tam);
-    printf("memoria.txt\n\n");    
 
-    for(int i = 0; i < tam; i++)
+    for(uc->ir = 0; uc->signal != -1; uc->pc++)
     {
-        printf("%s", instrucoes[i]);
+        instruction(instrucoes, uc->ir, tam, uc);
+        uc->ir = uc->pc;
     }
-
-    for(int i = 0; i <= tam; i++)
-    {
-        instruction(instrucoes, i);
-    }
+    finish(instrucoes, uc, tam);
 }
 
 void
 start(FILE *inetern)
 {
-    uc(inetern);
-    //printf("foi ate o final?");
+    UC(inetern);
 }
 
 int
