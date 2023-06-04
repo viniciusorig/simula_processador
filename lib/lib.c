@@ -4,12 +4,20 @@
 #include <unistd.h>
 
 #include "../includes/lib.h"
-  
-#define mem 0 
-#define ope 1
-#define sys 2
+
+#define CONTINUE 1  
+#define HALT -1
 
 int reg[] = {0, 0, 0};
+
+struct Uc
+{
+    int res_ula;
+    int pc;
+    int ir;
+    int signal;
+};
+
 
 void
 load(char *memory, int *ra)
@@ -20,15 +28,16 @@ load(char *memory, int *ra)
 void 
 store(char *memory, int *ra)
 {
-    int i  = 0, aux = atoi(memory);
-    char *ha = 0;
-    for(; aux < 1; i++)
+    int i  = 0;
+    char *ha = malloc(sizeof(char));
+    for(; *ra < 1; i++)
     {
-        aux /= 10;
+        *ra /= 10;
     }
-
-    memory = realloc(memory, sizeof(char)*i);
-    snprintf(ha, i+1, "%d", *ra);
+    i++;
+    ha = realloc(ha, sizeof(char)*(i+1));
+    memory = realloc(memory, sizeof(char)*(i+1));
+    snprintf(ha, (i+1), "%d", *ra);
     strncpy(memory, ha, i+1);
 }
 
@@ -39,41 +48,75 @@ move(int *ra, int *rb)
 }
 
 void 
-sub(int *ra, int rb, int rc)
+sub(int *ra, int rb, int rc, int *ula)
 {
     *ra = rb + rb;
+    *ula = *ra;
 }
 
 void
-add(int *ra, int rb, int rc)
+add(int *ra, int rb, int rc, int *ula)
 {
     *ra = rb+rc;
+    *ula = *ra;
+
 }
 
 void 
-or(int * ra, int rb, int rc)
+or(int * ra, int rb, int rc, int *ula )
 {
     *ra = rb | rc;
+    *ula = *ra;
 }
 
 void
-and(int *ra, int rb, int rc)
+and(int *ra, int rb, int rc, int *ula)
 {
     *ra = rb & rc;
+    *ula = *ra;
 }
 
 //system suspende
-void
+int 
 halt()
 {
     fprintf(stdout, "saida\n");
-    exit(EXIT_SUCCESS);
+    return HALT;
 }
 
 //nao faz nada
 void
 nop()
 {
+    return;
+}
+
+void
+branch(struct Uc *uc, int pocisao)
+{
+    uc->pc = pocisao;
+    return;
+}
+
+void
+Bzero(struct Uc *uc, int pocisao)
+{
+    if(uc->res_ula == 0)
+    {
+        uc->pc = pocisao;
+        return;
+    }
+    return;
+}
+
+void
+bneg(struct Uc *uc, int pocisao)
+{
+    if(uc->res_ula < 0)
+    {
+        uc->pc = pocisao;
+        return;
+    }
     return;
 }
 
@@ -154,82 +197,143 @@ stripper(char *instrucao, int *tam)
 }
 
 void
-instruction(char **matrix, int offset)
+instruction(char **matrix, int offset, size_t total, struct Uc *uc)
 {
     int tam;
     char **step = stripper(matrix[offset], &tam);
 
     if(strncmp(step[0], "ADD", 3) == 0)
     {
-        add(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])]);
+        add(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])], &uc->res_ula);
+        uc->signal = CONTINUE;
+        return;
     }
+
     if(strncmp(step[0], "SUB", 3) == 0)
     {
-        sub(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])]);
+        sub(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])], &uc->res_ula);
+        uc->signal = CONTINUE;
+        return;
     }
+
     if(strncmp(step[0], "AND", 3) == 0)
     {
-        and(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])]);
+        and(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])], &uc->res_ula);
+        uc->signal = CONTINUE;
     }
+
     if(strncmp(step[0], "OR", 2) == 0)
     {
-        or(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])]);
+        or(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])], &uc->res_ula);
+        uc->signal = CONTINUE;
+        return;
     }
 
     if(strncmp(step[0], "LOAD", 4) == 0)
     {
         load(matrix[atoi(step[2])], &reg[atoi(step[1])]);
+        uc->signal = CONTINUE;
+        return;
     }
-    if(strncmp(step[0], "STORE", 5) == 0)
+
+    if(strncmp(step[0], "STORE", 3) == 0)
     {
         store(matrix[atoi(step[1])], &reg[atoi(step[2])]);
+        uc->signal = CONTINUE;
+        return;
     }
+    
     if(strncmp(step[0], "MOVE", 4) == 0)
     {
         move(&reg[atoi(step[1])], &reg[atoi(step[2])]);
+        uc->signal = CONTINUE;
+        return;
     }
     
     if(strncmp(step[0], "HALT", 4) == 0)
     {
-        FILE *out_memory = fopen("./arquivos_out/memory_dump.txt", "w");
-    
-        if(!out_memory)
-        {
-            fprintf(stderr, "erro ao criar o dump de m,emoria final");
-            exit(EXIT_FAILURE);
-        }
-
-        for(int i = 0; i < tam; i++)
-        {
-            fprintf(out_memory, "%s", matrix[i]);
-            fprintf(out_memory, "\n");
-        }
-        fclose(out_memory);
-
         halt();
+        uc->signal = HALT;
+        return;
     }
+    
     if(strncmp(step[0], "NOP", 3) == 0)
     {
         nop();
+        uc->signal = CONTINUE;
+        return;
     }
     
-    return;
+    if(strncmp(step[0], "BNEG", 4) == 0)
+    {
+        bneg(uc, atoi(step[1]));
+        uc->signal = CONTINUE;
+        return;
+    }
+    
+    if(strncmp(step[0], "BZERO", 3) == 0)
+    {
+        Bzero(uc, atoi(step[1]));
+        uc->signal = CONTINUE;
+        return;
+    }
+    
+    if(strncmp(step[0], "BRANCH", 1) == 0)
+    {
+        branch(uc, atoi(step[1]));
+        uc->signal = CONTINUE;
+        return;
+    }
 }
 
 void
-uc(FILE *memoria)
+finish(char **memory, struct Uc *uc, int tam)
 {
+    FILE *memory_out, *controle, *ula;
+    if(((memory_out = fopen("./arquivos_out/memory_dump.txt", "w")) == NULL ) || 
+        ((ula = fopen("./arquivos_out/registrador_dump.txt", "w")) == NULL)           || 
+             ((controle = fopen("./arquivos_out/uc_dump.txt", "w")) == NULL))
+    {
+        fprintf(stderr, "nao foi possivel creiar/abrir os arquivos de saida");
+        exit(EXIT_FAILURE);
+    }
+    
+    for(int i = 0; i < (tam+1); i++)
+    {
+        fprintf(memory_out, "%s\n", memory[i]);
+    }
+
+    fclose(memory_out);
+
+    fprintf(controle, "pc :: %d\nir :: %s", uc->pc-1, memory[uc->pc-2]);
+    fclose(controle);
+    
+    for(int i = 0; i < 3; i++)
+    {
+        fprintf(ula, "registrador %d :: %d\n", i, reg[i]);
+    }
+    
+    fclose(ula);
+}
+
+void
+UC(FILE *memoria)
+{
+    struct Uc *uc = malloc(sizeof(struct Uc)); 
+    uc->pc = 1;
     int tam;
     char **instrucoes = memory(memoria, &tam);
 
-    for(int i = 0; i <= tam; i++)
+    for(uc->ir = 0; uc->signal != HALT; uc->pc++)
     {
-        instruction(instrucoes, i);
+        instruction(instrucoes, uc->ir, tam, uc);
+        uc->ir = uc->pc;
     }
+    finish(instrucoes, uc, tam);
 }
 
 void
 start(FILE *inetern)
 {
-    uc(inetern);
+    UC(inetern);
 }

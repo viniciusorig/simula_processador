@@ -12,4 +12,4 @@ test:
 	$(CC) -Wall a.c -o test.out
 
 clean:
-	rm -f test.out ./bin/processador.out 
+	rm -f test.out ./bin/processador.out lib.o test.out a arquivos_out/*

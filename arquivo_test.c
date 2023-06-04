@@ -4,10 +4,9 @@
 #include <unistd.h>
 
 //#include "../includes/lib.h"
-  
-#define mem 0 
-#define ope 1
-#define sys 2
+
+#define CONTINUE 1  
+#define HALT -1
 
 int reg[] = {0, 0, 0};
 
@@ -82,13 +81,42 @@ int
 halt()
 {
     fprintf(stdout, "saida\n");
-    return -1;
+    return HALT;
 }
 
 //nao faz nada
 void
 nop()
 {
+    return;
+}
+
+void
+branch(struct Uc *uc, int pocisao)
+{
+    uc->pc = pocisao;
+    return;
+}
+
+void
+Bzero(struct Uc *uc, int pocisao)
+{
+    if(uc->res_ula == 0)
+    {
+        uc->pc = pocisao;
+        return;
+    }
+    return;
+}
+
+void
+bneg(struct Uc *uc, int pocisao)
+{
+    if(uc->res_ula < 0)
+    {
+        uc->pc = pocisao;
+        return;
+    }
     return;
 }
 
@@ -177,50 +205,84 @@ instruction(char **matrix, int offset, size_t total, struct Uc *uc)
     if(strncmp(step[0], "ADD", 3) == 0)
     {
         add(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])], &uc->res_ula);
-        
-        uc->signal = 1;
+        uc->signal = CONTINUE;
+        return;
     }
+
     if(strncmp(step[0], "SUB", 3) == 0)
     {
         sub(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])], &uc->res_ula);
-        uc->signal = 1;
+        uc->signal = CONTINUE;
+        return;
     }
+
     if(strncmp(step[0], "AND", 3) == 0)
     {
         and(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])], &uc->res_ula);
-        uc->signal = 1;
+        uc->signal = CONTINUE;
     }
+
     if(strncmp(step[0], "OR", 2) == 0)
     {
         or(&reg[atoi(step[1])], reg[atoi(step[2])], reg[atoi(step[3])], &uc->res_ula);
-        uc->signal = 1;
+        uc->signal = CONTINUE;
+        return;
     }
 
     if(strncmp(step[0], "LOAD", 4) == 0)
     {
         load(matrix[atoi(step[2])], &reg[atoi(step[1])]);
-        uc->signal = 1;
+        uc->signal = CONTINUE;
+        return;
     }
+
     if(strncmp(step[0], "STORE", 3) == 0)
     {
         store(matrix[atoi(step[1])], &reg[atoi(step[2])]);
-        uc->signal = 1;
+        uc->signal = CONTINUE;
+        return;
     }
+    
     if(strncmp(step[0], "MOVE", 4) == 0)
     {
         move(&reg[atoi(step[1])], &reg[atoi(step[2])]);
-        uc->signal = 1;
+        uc->signal = CONTINUE;
+        return;
     }
     
     if(strncmp(step[0], "HALT", 4) == 0)
     {
         halt();
-        uc->signal = -1;
+        uc->signal = HALT;
+        return;
     }
+    
     if(strncmp(step[0], "NOP", 3) == 0)
     {
         nop();
-        uc->signal = 1;
+        uc->signal = CONTINUE;
+        return;
+    }
+    
+    if(strncmp(step[0], "BNEG", 4) == 0)
+    {
+        bneg(uc, atoi(step[1]));
+        uc->signal = CONTINUE;
+        return;
+    }
+    
+    if(strncmp(step[0], "BZERO", 3) == 0)
+    {
+        Bzero(uc, atoi(step[1]));
+        uc->signal = CONTINUE;
+        return;
+    }
+    
+    if(strncmp(step[0], "BRANCH", 1) == 0)
+    {
+        branch(uc, atoi(step[1]));
+        uc->signal = CONTINUE;
+        return;
     }
 }
 
@@ -229,7 +291,7 @@ finish(char **memory, struct Uc *uc, int tam)
 {
     FILE *memory_out, *controle, *ula;
     if(((memory_out = fopen("./arquivos_out/memory_dump.txt", "w")) == NULL ) || 
-        ((ula = fopen("./arquivos_out/ula_dump.txt", "w")) == NULL)           || 
+        ((ula = fopen("./arquivos_out/registrador_dump.txt", "w")) == NULL)           || 
              ((controle = fopen("./arquivos_out/uc_dump.txt", "w")) == NULL))
     {
         fprintf(stderr, "nao foi possivel creiar/abrir os arquivos de saida");
@@ -240,12 +302,17 @@ finish(char **memory, struct Uc *uc, int tam)
     {
         fprintf(memory_out, "%s\n", memory[i]);
     }
+
     fclose(memory_out);
 
-    fprintf(controle, "pc :: %d\nir :: %d", uc->pc, uc->ir);
+    fprintf(controle, "pc :: %d\nir :: %s", uc->pc-1, memory[uc->pc-2]);
     fclose(controle);
-
-    fprintf(ula, "ultimo resultado da ula :: %d", uc->res_ula);
+    
+    for(int i = 0; i < 3; i++)
+    {
+        fprintf(ula, "registrador %d :: %d\n", i, reg[i]);
+    }
+    
     fclose(ula);
 }
 
@@ -257,7 +324,7 @@ UC(FILE *memoria)
     int tam;
     char **instrucoes = memory(memoria, &tam);
 
-    for(uc->ir = 0; uc->signal != -1; uc->pc++)
+    for(uc->ir = 0; uc->signal != HALT; uc->pc++)
     {
         instruction(instrucoes, uc->ir, tam, uc);
         uc->ir = uc->pc;

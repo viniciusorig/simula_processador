@@ -1,1 +1,3 @@
-ultimo resultado da ula :: 6
+registrador :: 6
+registrador :: 0
+registrador :: 0

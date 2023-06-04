@@ -1,0 +1,30 @@
+Temos o arquivo de entrada dentro de aequivo_in onde eh aceito comando em caixa alta e aapos
+o termino de TODAS as linhas deve terminar com ponto e virgula ';'.
+
+Para rodar ddigitar comando 'make'.
+
+As operacoes suportadas sao ::
+
+{  
+    "LOAD", "STORE",  "MOVE",
+    "ADD",  "SUB",    "AND",
+    "OR",   "BRANCH", "BZERO",
+    "BNEG", "NOP",    "HALT"
+};
+
+Segue teste se quiser fazer :: 
+
+SUB R0 R0 R0;
+LOAD R0 11;
+LOAD R1 11;
+LOAD R2 12;
+LOAD R3 13;
+ADD R0 R0 R1;
+ADD R2 R2 R3;
+BNEG 5;
+HALT;
+;
+;
+2;
+3;
+1;

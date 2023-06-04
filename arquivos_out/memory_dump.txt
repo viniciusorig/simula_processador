@@ -1,6 +1,0 @@
-LOAD R0 5;
-ADD R0 R0 R0;
-STORE 5 R0;
-HALT;
-;
-6
