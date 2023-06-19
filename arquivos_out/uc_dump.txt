@@ -1,18 +1,18 @@
-pc :: 0	ir :: SUB R0 R0 R0;
-
 pc :: 1	ir :: SUB R0 R0 R0;
 
-pc :: 2	ir :: SUB R0 R0 R0;
+pc :: 2	ir :: LOAD R0 11;
 
-pc :: 3	ir :: SUB R0 R0 R0;
+pc :: 3	ir :: LOAD R1 11;
 
-pc :: 4	ir :: SUB R0 R0 R0;
+pc :: 4	ir :: LOAD R2 12;
 
-pc :: 5	ir :: SUB R0 R0 R0;
+pc :: 5	ir :: LOAD R3 13;
 
-pc :: 6	ir :: SUB R0 R0 R0;
+pc :: 6	ir :: ADD R0 R0 R1;
 
-pc :: 7	ir :: SUB R0 R0 R0;
+pc :: 7	ir :: ADD R2 R2 R3;
 
-pc :: 8	ir :: SUB R0 R0 R0;
+pc :: 8	ir :: BNEG 5;
+
+pc :: 9	ir :: HALT;
 

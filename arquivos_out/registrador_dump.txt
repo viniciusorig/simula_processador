@@ -1,52 +1,52 @@
-pc :: 0	ir :: SUB R0 R0 R0;
+pc :: 1	ir :: SUB R0 R0 R0;
 registrador 0 :: 0
 registrador 1 :: 0
 registrador 2 :: 0
 
 
-pc :: 1	ir :: SUB R0 R0 R0;
+pc :: 2	ir :: LOAD R0 11;
 registrador 0 :: 2
 registrador 1 :: 0
 registrador 2 :: 0
 
 
-pc :: 2	ir :: SUB R0 R0 R0;
+pc :: 3	ir :: LOAD R1 11;
 registrador 0 :: 2
 registrador 1 :: 2
 registrador 2 :: 0
 
 
-pc :: 3	ir :: SUB R0 R0 R0;
+pc :: 4	ir :: LOAD R2 12;
 registrador 0 :: 2
 registrador 1 :: 2
 registrador 2 :: 3
 
 
-pc :: 4	ir :: SUB R0 R0 R0;
+pc :: 5	ir :: LOAD R3 13;
 registrador 0 :: 2
 registrador 1 :: 2
 registrador 2 :: 3
 
 
-pc :: 5	ir :: SUB R0 R0 R0;
+pc :: 6	ir :: ADD R0 R0 R1;
 registrador 0 :: 4
 registrador 1 :: 2
 registrador 2 :: 3
 
 
-pc :: 6	ir :: SUB R0 R0 R0;
+pc :: 7	ir :: ADD R2 R2 R3;
 registrador 0 :: 4
 registrador 1 :: 2
 registrador 2 :: 4
 
 
-pc :: 7	ir :: SUB R0 R0 R0;
+pc :: 8	ir :: BNEG 5;
 registrador 0 :: 4
 registrador 1 :: 2
 registrador 2 :: 4
 
 
-pc :: 8	ir :: SUB R0 R0 R0;
+pc :: 9	ir :: HALT;
 registrador 0 :: 4
 registrador 1 :: 2
 registrador 2 :: 4

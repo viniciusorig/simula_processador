@@ -1,7 +1,7 @@
 Temos o arquivo de entrada dentro de aequivo_in onde eh aceito comando em caixa alta e aapos
 o termino de TODAS as linhas deve terminar com ponto e virgula ';'.
 
-Para rodar ddigitar comando 'make'.
+Para rodar digitar comando 'make'.
 
 As operacoes suportadas sao ::
 
