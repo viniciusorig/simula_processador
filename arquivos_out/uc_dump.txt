@@ -1,0 +1,18 @@
+pc :: 0	ir :: SUB R0 R0 R0;
+
+pc :: 1	ir :: SUB R0 R0 R0;
+
+pc :: 2	ir :: SUB R0 R0 R0;
+
+pc :: 3	ir :: SUB R0 R0 R0;
+
+pc :: 4	ir :: SUB R0 R0 R0;
+
+pc :: 5	ir :: SUB R0 R0 R0;
+
+pc :: 6	ir :: SUB R0 R0 R0;
+
+pc :: 7	ir :: SUB R0 R0 R0;
+
+pc :: 8	ir :: SUB R0 R0 R0;
+

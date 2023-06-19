@@ -291,8 +291,8 @@ finish(char **memory, struct Uc *uc, int tam)
 {
     FILE *memory_out, *controle, *ula;
     if(((memory_out = fopen("./arquivos_out/memory_dump.txt", "w")) == NULL ) || 
-        ((ula = fopen("./arquivos_out/registrador_dump.txt", "w")) == NULL)           || 
-             ((controle = fopen("./arquivos_out/uc_dump.txt", "w")) == NULL))
+        ((ula = fopen("./arquivos_out/registrador_dump.txt", "a")) == NULL)           ||
+             ((controle = fopen("./arquivos_out/uc_dump.txt", "a")) == NULL))
     {
         fprintf(stderr, "nao foi possivel creiar/abrir os arquivos de saida");
         exit(EXIT_FAILURE);
@@ -305,15 +305,29 @@ finish(char **memory, struct Uc *uc, int tam)
 
     fclose(memory_out);
 
-    fprintf(controle, "pc :: %d\nir :: %s", uc->pc-1, memory[uc->pc-2]);
-    fclose(controle);
+    if(uc->pc < 1)
+    {
+        fprintf(controle, "pc :: %d\tir :: %s\n\n", uc->pc-1, memory[uc->pc-2]);
+        fprintf(ula, "pc :: %d\tir :: %s\n", uc->pc-1, memory[uc->pc-2]);
+        fclose(controle);
+    }
+    else
+    {   
+        fprintf(controle, "pc :: %d\tir :: %s\n\n", uc->pc-1, memory[0]);
+        fprintf(ula, "pc :: %d\tir :: %s\n", uc->pc-1, memory[0]);
+        fclose(controle);
+    }
+
     
+
     for(int i = 0; i < 3; i++)
     {
         fprintf(ula, "registrador %d :: %d\n", i, reg[i]);
     }
+    fprintf(ula, "\n\n");
     
     fclose(ula);
+    return;
 }
 
 void
@@ -328,12 +342,14 @@ UC(FILE *memoria)
     {
         instruction(instrucoes, uc->ir, tam, uc);
         uc->ir = uc->pc;
+        finish(instrucoes, uc, tam);
     }
-    finish(instrucoes, uc, tam);
+    return;
 }
 
 void
 start(FILE *inetern)
 {
+    system("rm -rf arquivos_out/*");
     UC(inetern);
 }

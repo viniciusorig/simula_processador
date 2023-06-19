@@ -4,9 +4,8 @@ OBJ = $(PWD)/lib
 CC = gcc
 
 all:
-	$(CC) -Wall lib/lib.c -c 
-	$(CC) -Wall src/main.c lib.o -o $(OUT)
-#	$(CC) -Wall ./bin/main.o ./bin/lib.o -o a.out	
+	$(CC) -Wall -c lib/lib.c -o bin/lib.o
+	$(CC) -Wall src/main.c bin/lib.o -o $(OUT)
 
 test:
 	$(CC) -Wall a.c -o test.out

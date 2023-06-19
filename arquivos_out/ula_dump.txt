@@ -1,3 +1,0 @@
-registrador :: 6
-registrador :: 0
-registrador :: 0
